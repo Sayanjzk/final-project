@@ -1,27 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="website icon" type =png
+    href="logo.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Tester</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #222; color: white; text-align: center; }
-        .container { max-width: 500px; margin: auto; padding: 20px; background: #333; border-radius: 10px; }
-        input, button { margin: 10px; padding: 10px; width: 90%; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #1a1a1a; 
+            color: white; 
+            text-align: center; 
+        }
+        .container { 
+            max-width: 600px; 
+            margin: auto; 
+            padding: 20px; 
+            background: #2a2a2a; 
+            border-radius: 10px; 
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+        input, button { 
+            margin: 10px; 
+            padding: 10px; 
+            width: 90%; 
+            border: none;
+            border-radius: 5px;
+        }
+        button { 
+            background: limegreen; 
+            color: black;
+            cursor: pointer;
+        }
+        button:hover { 
+            background: #28a745;
+        }
         .hidden { display: none; }
+        .logo {
+            width: 100px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        .telegram-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #0088cc;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0, 136, 204, 0.5);
+            transition: background 0.3s;
+        }
+        .telegram-button:hover {
+            background: #005f99;
+        }
+
     </style>
 </head>
 <body>
     <div class="container">
+        <a href="https://t.me/sayancp" class="telegram-button" target="_blank">Создатель</a>
+
+        <img src="logo.png" alt="Logo" class="logo">
         <h1>Quiz Tester</h1>
+        <button onclick="toggleExtraFunctions()">Toggle Extra Features</button>
+        <button onclick="toggleQuestionMode()">Switch Question Mode</button>
         <button onclick="startTest()">Start Test</button>
-        <button onclick="clearAllQuestions()">Clear All Questions</button>
         <button id="stopButton" class="hidden" onclick="stopTest()">Stop</button>
-        <form id="addForm">
-            <input type="text" id="question" placeholder="Enter question" autocomplete="off">
-            <input type="text" id="answer" placeholder="Enter answer" autocomplete="off">
-            <button type="submit">Add Question</button>
-        </form>
+        <div id="extraFeatures" class="hidden">
+            <form id="addForm">
+                <textarea id="bulkQuestions" placeholder="Enter questions in format: question - answer" class="hidden"></textarea>
+                <input type="text" id="question" placeholder="Enter question" autocomplete="off">
+                <input type="text" id="answer" placeholder="Enter answer" autocomplete="off">
+                <button type="submit">Add Question</button>
+            </form>
+            <button onclick="clearAllQuestions()">Clear All Questions</button>
+        </div>
         <div id="quiz" class="hidden">
             <p id="quizQuestion"></p>
             <input type="text" id="userAnswer" placeholder="Your answer">
@@ -34,14 +92,43 @@
         let questions = [];
         let currentIndex = null;
         let isTesting = false;
+        let bulkMode = false;
 
         document.getElementById("addForm").addEventListener("submit", function(e) {
             e.preventDefault();
-            let q = document.getElementById("question").value;
-            let a = document.getElementById("answer").value;
-            questions.push({ question: q, answer: a });
-            this.reset();
+            if (bulkMode) {
+                let bulkText = document.getElementById("bulkQuestions").value.trim();
+                let lines = bulkText.split("\n");
+                lines.forEach(line => {
+                    let parts = line.split("-");
+                    if (parts.length === 2) {
+                        questions.push({ question: parts[0].trim(), answer: parts[1].trim() });
+                    }
+                });
+                document.getElementById("bulkQuestions").value = "";
+            } else {
+                let q = document.getElementById("question").value.trim();
+                let a = document.getElementById("answer").value.trim();
+                if (q && a) {
+                    questions.push({ question: q, answer: a });
+                    document.getElementById("question").value = "";
+                    document.getElementById("answer").value = "";
+                } else {
+                    alert("Please enter both question and answer!");
+                }
+            }
         });
+
+        function toggleExtraFunctions() {
+            document.getElementById("extraFeatures").classList.toggle("hidden");
+        }
+
+        function toggleQuestionMode() {
+            bulkMode = !bulkMode;
+            document.getElementById("bulkQuestions").classList.toggle("hidden");
+            document.getElementById("question").classList.toggle("hidden");
+            document.getElementById("answer").classList.toggle("hidden");
+        }
 
         function startTest() {
             if (questions.length === 0) return alert("No questions available!");
@@ -58,7 +145,7 @@
         }
 
         function checkAnswer() {
-            let userAns = document.getElementById("userAnswer").value;
+            let userAns = document.getElementById("userAnswer").value.trim();
             alert("Correct answer: " + questions[currentIndex].answer);
             document.getElementById("userAnswer").value = "";
             if (isTesting) askQuestion();
